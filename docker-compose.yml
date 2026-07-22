@@ -1,0 +1,16 @@
+services:
+  gateway:
+    build: .
+    container_name: gateway
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery:8761/eureka
+    networks:
+      - msa-network
+    restart: unless-stopped
+
+networks:
+  msa-network:
+    external: true
+    name: msa_msa-network
