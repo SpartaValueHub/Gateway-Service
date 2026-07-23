@@ -54,6 +54,9 @@ jobs:
             set -e
             cd /opt/msa/gateway
             chmod +x gradlew
+            sudo docker stop gateway 2>/dev/null || true
+            sudo docker rm gateway 2>/dev/null || true
+            sudo docker compose down 2>/dev/null || true
             sudo docker compose build gateway
             sudo docker compose up -d gateway
             sudo docker ps --filter name=gateway
