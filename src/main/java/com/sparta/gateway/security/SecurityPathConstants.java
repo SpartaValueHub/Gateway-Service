@@ -32,6 +32,10 @@ public final class SecurityPathConstants {
 			"/*/v3/api-docs/**"
 	};
 
+	public static final String[] MICROSERVICE_HEALTH_PATHS = {
+			"/*/health/**"
+	};
+
 	public static String[] publicPaths() {
 		return new String[] {
 				"/",
@@ -45,7 +49,8 @@ public final class SecurityPathConstants {
 				"/v3/api-docs/**",
 				"/webjars/**",
 				"/*/v3/api-docs",
-				"/*/v3/api-docs/**"
+				"/*/v3/api-docs/**",
+				"/*/health/**"
 		};
 	}
 }
