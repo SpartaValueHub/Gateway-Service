@@ -3,7 +3,7 @@ services:
     build: .
     container_name: gateway
     ports:
-      - "8080:8080"
+      - "8000:8000"
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery:8761/eureka
     networks:

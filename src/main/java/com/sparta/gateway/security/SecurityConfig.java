@@ -1,4 +1,4 @@
-package com.sparta.gateway;
+package com.sparta.gateway.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +14,9 @@ public class SecurityConfig {
 	public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
 		return http
 				.csrf(ServerHttpSecurity.CsrfSpec::disable)
-				.authorizeExchange(exchange -> exchange.anyExchange().permitAll())
+				.authorizeExchange(exchange -> exchange
+						.pathMatchers(SecurityPathConstants.publicPaths()).permitAll()
+						.anyExchange().permitAll())
 				.build();
 	}
 }
