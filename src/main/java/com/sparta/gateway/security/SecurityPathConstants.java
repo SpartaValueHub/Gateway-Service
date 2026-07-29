@@ -7,7 +7,13 @@ public final class SecurityPathConstants {
 
 	public static final String[] HEALTH_PATHS = {
 			"/",
-			"/health"
+			"/health",
+			"/health/**"
+	};
+
+	public static final String[] TEST_PATHS = {
+			"/api/test",
+			"/api/test/**"
 	};
 
 	public static final String[] SWAGGER_UI_PATHS = {
@@ -30,6 +36,9 @@ public final class SecurityPathConstants {
 		return new String[] {
 				"/",
 				"/health",
+				"/health/**",
+				"/api/test",
+				"/api/test/**",
 				"/swagger-ui.html",
 				"/swagger-ui/**",
 				"/v3/api-docs",
