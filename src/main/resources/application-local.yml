@@ -14,7 +14,11 @@ spring:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
-    urls: []
+    urls:
+      - name: auth-service
+        url: /auth-service/v3/api-docs
+      - name: chat-service
+        url: /chat-service/v3/api-docs
   api-docs:
     path: /v3/api-docs
 
