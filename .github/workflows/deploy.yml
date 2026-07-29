@@ -31,6 +31,7 @@ jobs:
           script: |
             set -e
             sudo mkdir -p /opt/msa/gateway
+            sudo rm -rf /opt/msa/gateway/src
             sudo chown -R ec2-user:ec2-user /opt/msa
             sudo docker network create msa_msa-network 2>/dev/null || true
 
