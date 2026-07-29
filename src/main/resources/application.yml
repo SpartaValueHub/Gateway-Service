@@ -24,5 +24,16 @@ security:
     enabled: ${SECURITY_JWT_ENABLED:false}
 
 springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
   swagger-ui:
+    path: /swagger-ui.html
+    persist-authorization: true
     operations-sorter: method
+    urls:
+      - name: auth-service
+        url: /auth-service/v3/api-docs
+      - name: chat-service
+        url: /chat-service/v3/api-docs
+    urls-primary-name: auth-service
