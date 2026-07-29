@@ -8,8 +8,8 @@ Spring Cloud Gateway 기반 API Gateway입니다.
 ./gradlew bootRun
 ```
 
-- Gateway: http://localhost:8080
-- Health: http://localhost:8080/health
+- Gateway: http://localhost:8000
+- Health: http://localhost:8000/health
 
 ## Docker 실행
 
