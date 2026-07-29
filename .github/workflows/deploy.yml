@@ -20,7 +20,10 @@ jobs:
           distribution: 'temurin'
 
       - name: Build
-        run: chmod +x gradlew && ./gradlew bootJar -x test
+        run: |
+          chmod +x gradlew
+          ./gradlew bootJar -x test
+          cp "$(find build/libs -maxdepth 1 -name '*.jar' ! -name '*-plain.jar' | head -1)" application.jar
 
       - name: Prepare deploy directory
         uses: appleboy/ssh-action@v1.0.3
@@ -31,17 +34,17 @@ jobs:
           script: |
             set -e
             sudo mkdir -p /opt/msa/gateway
-            sudo rm -rf /opt/msa/gateway/src
+            sudo rm -rf /opt/msa/gateway/src /opt/msa/gateway/gradle /opt/msa/gateway/.gradle
             sudo chown -R ec2-user:ec2-user /opt/msa
             sudo docker network create msa_msa-network 2>/dev/null || true
 
-      - name: Upload source
+      - name: Upload artifacts
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "Dockerfile,docker-compose.yml,build.gradle,settings.gradle,gradlew,gradlew.bat,gradle,src"
+          source: "Dockerfile,docker-compose.yml,application.jar"
           target: /opt/msa/gateway
           strip_components: 0
 
@@ -54,7 +57,8 @@ jobs:
           script: |
             set -e
             cd /opt/msa/gateway
-            chmod +x gradlew
+            sudo docker builder prune -af || true
+            sudo docker image prune -af || true
             sudo docker stop gateway 2>/dev/null || true
             sudo docker rm gateway 2>/dev/null || true
             sudo docker compose down 2>/dev/null || true
