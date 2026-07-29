@@ -31,6 +31,7 @@ jobs:
           script: |
             set -e
             sudo mkdir -p /opt/msa/gateway
+            sudo rm -rf /opt/msa/gateway/src
             sudo chown -R ec2-user:ec2-user /opt/msa
             sudo docker network create msa_msa-network 2>/dev/null || true
 
@@ -59,4 +60,7 @@ jobs:
             sudo docker compose down 2>/dev/null || true
             sudo docker compose build gateway
             sudo docker compose up -d gateway
-            sudo docker ps --filter name=gateway
+            sleep 45
+            sudo docker ps -a --filter name=gateway
+            sudo docker logs gateway --tail 100
+            curl -sf http://localhost:8000/health
