@@ -11,13 +11,6 @@ spring:
     gateway:
       routes: []
 
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-    urls: []
-  api-docs:
-    path: /v3/api-docs
-
 logging:
   level:
     root: WARN
