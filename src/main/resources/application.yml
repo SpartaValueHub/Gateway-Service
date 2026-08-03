@@ -18,6 +18,15 @@ gateway:
     services:
       - auth-service
       - chat-service
+      - member-service
+      - category-service
+      - member-regions-service
+      - listing-service
+      - reviews-service
+      - reports-service
+      - notifications-service
+      - premium-plans-service
+      - bo-service
 
 security:
   jwt:
@@ -36,4 +45,22 @@ springdoc:
         url: /auth-service/v3/api-docs
       - name: chat-service
         url: /chat-service/v3/api-docs
+      - name: member-service
+        url: /member-service/v3/api-docs
+      - name: category-service
+        url: /category-service/v3/api-docs
+      - name: member-regions-service
+        url: /member-regions-service/v3/api-docs
+      - name: listing-service
+        url: /listing-service/v3/api-docs
+      - name: reviews-service
+        url: /reviews-service/v3/api-docs
+      - name: reports-service
+        url: /reports-service/v3/api-docs
+      - name: notifications-service
+        url: /notifications-service/v3/api-docs
+      - name: premium-plans-service
+        url: /premium-plans-service/v3/api-docs
+      - name: bo-service
+        url: /bo-service/v3/api-docs
     urls-primary-name: auth-service
