@@ -26,3 +26,20 @@ fix: Eureka 서비스 디스커버리 연결 오류 수정
 
 - `main`: 운영 배포 브랜치 (push 시 EC2 자동 배포)
 - `develop`: 개발 브랜치
+
+## 브랜치 명명 규칙
+
+1. **GitHub Issue를 먼저 생성**한다.
+2. 브랜치명: `{type}/{issue-number}-{short-slug}`
+   - `type`: `feat`, `fix`, `docs`, `chore`, `refactor` 등
+   - `issue-number`: GitHub Issue 번호
+   - `short-slug`: 작업 내용을 짧게 영문/kebab-case로 표현
+3. 예시
+   - Issue #1 → `feat/1-login-api`
+   - Issue #12 → `docs/12-readme-unify`
+
+## PR 제목 규칙
+
+PR 제목 형식은 [.github/pull_request_template.md](.github/pull_request_template.md)를 참고하세요.
+
+예: `[#{Issue Number}] Feature : 작업 내용`

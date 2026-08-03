@@ -14,6 +14,15 @@ public class MicroserviceRouteConfig {
 	private static final List<String> PROXY_SERVICES = List.of(
 			"auth-service",
 			"chat-service",
+			"member-service",
+			"category-service",
+			"member-regions-service",
+			"listing-service",
+			"reviews-service",
+			"reports-service",
+			"notifications-service",
+			"premium-plans-service",
+			"bo-service",
 			"discovery-service"
 	);
 
