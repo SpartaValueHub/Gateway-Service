@@ -8,9 +8,14 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
+/**
+ * 브라우저 → Gateway 직접 호출용 CORS.
+ * MSA 정책상 downstream(auth-service 등)에는 CORS를 두지 않음.
+ */
 @Configuration
 public class GatewayCorsConfig {
 
+	/** FO dev — LAN IP 패턴은 팀 로컬·동일 대역 테스트용 */
 	private static final List<String> DEFAULT_ALLOWED_ORIGIN_PATTERNS = List.of(
 			"http://localhost:3000",
 			"http://127.0.0.1:3000",
@@ -25,6 +30,7 @@ public class GatewayCorsConfig {
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
 		config.setAllowedHeaders(List.of("*"));
 		config.setExposedHeaders(List.of("*"));
+		// FE httpOnly cookie(BFF) 전환 전 — Authorization 헤더 직접 전달
 		config.setAllowCredentials(true);
 		config.setMaxAge(3600L);
 

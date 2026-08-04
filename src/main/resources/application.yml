@@ -32,6 +32,10 @@ security:
   jwt:
     enabled: ${SECURITY_JWT_ENABLED:false}
 
+jwt:
+  public-key: ${JWT_PUBLIC_KEY:}
+  public-key-location: ${JWT_PUBLIC_KEY_LOCATION:}
+
 springdoc:
   api-docs:
     enabled: true
