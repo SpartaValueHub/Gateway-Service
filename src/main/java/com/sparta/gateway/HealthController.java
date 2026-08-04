@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+/** CI/CD·로드밸런서 헬스체크 — deploy.yml curl /health */
 @RestController
 public class HealthController {
 
@@ -16,6 +17,7 @@ public class HealthController {
 		);
 	}
 
+	/** SecurityPathConstants.HEALTH_PATHS — JWT on/off 모두 public */
 	@GetMapping("/health")
 	public Map<String, String> health() {
 		return Map.of("status", "UP");
