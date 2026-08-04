@@ -21,6 +21,7 @@ public class SecurityConfig {
 		return http
 				.csrf(ServerHttpSecurity.CsrfSpec::disable)
 				.authorizeExchange(exchange -> exchange
+						.matchers(new AuthPublicServerWebExchangeMatcher()).permitAll()
 						.pathMatchers(SecurityPathConstants.publicPaths()).permitAll()
 						// JWT off: public 외도 permitAll — 로컬·초기 FE 연동용
 						.anyExchange().permitAll())

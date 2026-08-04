@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -19,8 +20,8 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 /**
- * SECURITY_JWT_ENABLED=true 일 때 활성 — auth-service RS256 public key로 Edge JWT 검증.
- * public path는 SecurityPathConstants 와 auth-service SecurityConfig 와 동기화.
+ * SECURITY_JWT_ENABLED=true — public API는 JWT 필터 없이 permitAll, 나머지만 JWT 검증.
+ * oauth2ResourceServer 를 public chain 에 두면 Bearer 없는 POST 가 403 될 수 있음.
  */
 @Configuration
 @EnableWebFluxSecurity
@@ -28,16 +29,24 @@ import java.util.Base64;
 public class JwtSecurityConfig {
 
 	@Bean
+	@Order(0)
+	public SecurityWebFilterChain publicSecurityWebFilterChain(ServerHttpSecurity http) {
+		return http
+				.securityMatcher(SecurityPathConstants.jwtPublicExchangeMatcher())
+				.csrf(ServerHttpSecurity.CsrfSpec::disable)
+				.authorizeExchange(exchange -> exchange.anyExchange().permitAll())
+				.build();
+	}
+
+	@Bean
+	@Order(1)
 	public SecurityWebFilterChain jwtSecurityWebFilterChain(
 			ServerHttpSecurity http,
 			ReactiveJwtDecoder reactiveJwtDecoder
 	) {
 		return http
 				.csrf(ServerHttpSecurity.CsrfSpec::disable)
-				.authorizeExchange(exchange -> exchange
-						.pathMatchers(SecurityPathConstants.publicPaths()).permitAll()
-						// JWT on: logout 등 protected API는 Bearer 필수
-						.anyExchange().authenticated())
+				.authorizeExchange(exchange -> exchange.anyExchange().authenticated())
 				.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtDecoder(reactiveJwtDecoder)))
 				.build();
 	}
@@ -48,7 +57,6 @@ public class JwtSecurityConfig {
 			@Value("${jwt.public-key-location:}") String publicKeyLocation,
 			ResourceLoader resourceLoader
 	) {
-		// auth-service jwt-public.pem — Private Key는 Gateway에 두지 않음
 		String pem = resolvePublicKeyPem(publicKeyPem, publicKeyLocation, resourceLoader);
 		RSAPublicKey publicKey = parsePublicKey(pem);
 		return NimbusReactiveJwtDecoder.withPublicKey(publicKey).build();
