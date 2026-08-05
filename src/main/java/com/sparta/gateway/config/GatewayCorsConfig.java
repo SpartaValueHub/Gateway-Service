@@ -30,7 +30,7 @@ public class GatewayCorsConfig {
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
 		config.setAllowedHeaders(List.of("*"));
 		config.setExposedHeaders(List.of("*"));
-		// FE httpOnly cookie(BFF) 전환 전 — Authorization 헤더 직접 전달
+		// FE httpOnly cookie — credentials: include, Authorization Bearer 불필요
 		config.setAllowCredentials(true);
 		config.setMaxAge(3600L);
 
