@@ -8,6 +8,10 @@ spring:
       discovery:
         locator:
           enabled: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 eureka:
   instance:
@@ -35,6 +39,11 @@ security:
 jwt:
   public-key: ${JWT_PUBLIC_KEY:}
   public-key-location: ${JWT_PUBLIC_KEY_LOCATION:}
+
+auth:
+  cookie:
+    access-name: ${AUTH_COOKIE_ACCESS_NAME:vh_access_token}
+    refresh-name: ${AUTH_COOKIE_REFRESH_NAME:vh_refresh_token}
 
 springdoc:
   api-docs:

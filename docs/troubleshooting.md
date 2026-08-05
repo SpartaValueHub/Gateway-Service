@@ -35,9 +35,39 @@ public API (auth-service와 동기화):
 | POST | `/{service}/api/v1/identity-verifications/confirm` |
 | GET | `/{service}/api/v1/identity-verifications/{requestToken}` |
 
-**logout** 등은 public 아님 → Bearer accessToken 필요.
+**logout** 등은 public 아님 → `vh_access_token` HttpOnly Cookie 또는 Bearer 필요.
 
-### 검증
+---
+
+## HttpOnly Cookie JWT
+
+### 동작
+
+- Access token: `Authorization: Bearer` **또는** Cookie `vh_access_token` (`auth.cookie.access-name`)
+- `CookieBearerTokenAuthenticationConverter` — header 우선, cookie fallback
+- 로그아웃 blacklist: Redis `auth:blacklist:access:{jti}` (auth-service와 동일 prefix)
+- 성공 시 downstream 헤더: `X-Member-Uuid` (JWT sub), `X-Role` (claim, 기본 USER)
+
+### 로컬 E2E
+
+```bash
+# 로그인 (Set-Cookie 저장)
+curl.exe -c cookies.txt -X POST "http://localhost:8000/auth-service/api/v1/auth/sign-in" ^
+  -H "Content-Type: application/json" ^
+  -d "{\"logInId\":\"user01\",\"password\":\"Password1!\"}"
+
+# Cookie로 logout
+curl.exe -b cookies.txt -X POST "http://localhost:8000/auth-service/api/v1/auth/logout" -w "\n%{http_code}\n"
+```
+
+### CSRF / CORS
+
+- `allowCredentials(true)` — FE origin 명시 필요 (`GatewayCorsConfig`)
+- cross-origin cookie(3000→8000): prod `SameSite=None; Secure` + `AUTH_COOKIE_DOMAIN` 검토
+
+상세: [docs/auth-cookie-flow.md](./auth-cookie-flow.md)
+
+### 검증 (public path)
 
 ```bash
 curl.exe -s -o NUL -w "%{http_code}" -X POST "http://localhost:8000/auth-service/api/v1/auth/sign-up" ^

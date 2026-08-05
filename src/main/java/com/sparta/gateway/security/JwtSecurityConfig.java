@@ -6,7 +6,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
@@ -21,7 +23,7 @@ import java.util.Base64;
 
 /**
  * SECURITY_JWT_ENABLED=true — public API는 JWT 필터 없이 permitAll, 나머지만 JWT 검증.
- * oauth2ResourceServer 를 public chain 에 두면 Bearer 없는 POST 가 403 될 수 있음.
+ * Access token은 Authorization Bearer 또는 HttpOnly Cookie(vh_access_token).
  */
 @Configuration
 @EnableWebFluxSecurity
@@ -42,12 +44,19 @@ public class JwtSecurityConfig {
 	@Order(1)
 	public SecurityWebFilterChain jwtSecurityWebFilterChain(
 			ServerHttpSecurity http,
-			ReactiveJwtDecoder reactiveJwtDecoder
+			ReactiveJwtDecoder reactiveJwtDecoder,
+			CookieBearerTokenAuthenticationConverter cookieBearerTokenAuthenticationConverter,
+			AccessTokenBlacklistWebFilter accessTokenBlacklistWebFilter,
+			InternalAuthHeaderWebFilter internalAuthHeaderWebFilter
 	) {
 		return http
 				.csrf(ServerHttpSecurity.CsrfSpec::disable)
 				.authorizeExchange(exchange -> exchange.anyExchange().authenticated())
-				.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtDecoder(reactiveJwtDecoder)))
+				.oauth2ResourceServer(oauth2 -> oauth2
+						.bearerTokenConverter(cookieBearerTokenAuthenticationConverter)
+						.jwt(jwt -> jwt.jwtDecoder(reactiveJwtDecoder)))
+				.addFilterAfter(accessTokenBlacklistWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+				.addFilterAfter(internalAuthHeaderWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
 				.build();
 	}
 
@@ -60,6 +69,19 @@ public class JwtSecurityConfig {
 		String pem = resolvePublicKeyPem(publicKeyPem, publicKeyLocation, resourceLoader);
 		RSAPublicKey publicKey = parsePublicKey(pem);
 		return NimbusReactiveJwtDecoder.withPublicKey(publicKey).build();
+	}
+
+	@Bean
+	public AccessTokenBlacklistWebFilter accessTokenBlacklistWebFilter(
+			ReactiveStringRedisTemplate redisTemplate,
+			@Value("${auth.cookie.access-name:vh_access_token}") String accessCookieName
+	) {
+		return new AccessTokenBlacklistWebFilter(redisTemplate, accessCookieName);
+	}
+
+	@Bean
+	public InternalAuthHeaderWebFilter internalAuthHeaderWebFilter() {
+		return new InternalAuthHeaderWebFilter();
 	}
 
 	private static String resolvePublicKeyPem(
