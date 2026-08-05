@@ -10,7 +10,7 @@ import java.util.Map;
 
 /**
  * CI/CD·로드밸런서 헬스체크 — deploy.yml curl /health.
- * SecurityPathConstants.HEALTH_PATHS — JWT on/off 모두 public.
+ * SecurityPathConstants.INFRA_PUBLIC_PATHS — JWT on/off 모두 public.
  */
 @Configuration
 public class GatewayHealthRouterConfig {

@@ -43,7 +43,8 @@ jwt:
 auth:
   cookie:
     access-name: ${AUTH_COOKIE_ACCESS_NAME:vh_access_token}
-    refresh-name: ${AUTH_COOKIE_REFRESH_NAME:vh_refresh_token}
+  dependency-failure:
+    retry-after-seconds: ${AUTH_DEPENDENCY_RETRY_AFTER_SECONDS:5}
 
 springdoc:
   api-docs:
