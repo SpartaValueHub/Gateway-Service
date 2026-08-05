@@ -74,9 +74,9 @@ public class JwtSecurityConfig {
 	@Bean
 	public AccessTokenBlacklistWebFilter accessTokenBlacklistWebFilter(
 			ReactiveStringRedisTemplate redisTemplate,
-			@Value("${auth.cookie.access-name:vh_access_token}") String accessCookieName
+			@Value("${auth.dependency-failure.retry-after-seconds:5}") long dependencyRetryAfterSeconds
 	) {
-		return new AccessTokenBlacklistWebFilter(redisTemplate, accessCookieName);
+		return new AccessTokenBlacklistWebFilter(redisTemplate, dependencyRetryAfterSeconds);
 	}
 
 	@Bean

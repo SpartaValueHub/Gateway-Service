@@ -14,28 +14,6 @@ public final class SecurityPathConstants {
 	private SecurityPathConstants() {
 	}
 
-	public static final String[] HEALTH_PATHS = {
-			"/",
-			"/health",
-			"/health/**"
-	};
-
-	public static final String[] SWAGGER_UI_PATHS = {
-			"/swagger-ui.html",
-			"/swagger-ui/**"
-	};
-
-	public static final String[] API_DOCS_PATHS = {
-			"/v3/api-docs",
-			"/v3/api-docs/**",
-			"/webjars/**"
-	};
-
-	public static final String[] MICROSERVICE_API_DOCS_PATHS = {
-			"/*/v3/api-docs",
-			"/*/v3/api-docs/**"
-	};
-
 	public static final String[] AUTH_PUBLIC_PATHS = {
 			"/*/api/v1/auth/sign-up/**",
 			"/*/api/v1/auth/sign-in/**",
