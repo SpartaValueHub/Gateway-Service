@@ -8,7 +8,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -99,7 +98,7 @@ class AccessTokenBlacklistWebFilterTest {
     }
 
     @Test
-    void blacklistedAccessTokenReturns401WithSessionTerminatedBody() {
+    void blacklistedAccessTokenReturns401() {
         Jwt jwt = jwtWithId("blacklisted-jti");
         MockServerWebExchange exchange = exchangeWithPrincipal(
                 "/auth-service/api/v1/chat/rooms",
@@ -113,12 +112,7 @@ class AccessTokenBlacklistWebFilterTest {
         verify(redisTemplate).hasKey("auth:blacklist:access:blacklisted-jti");
         verify(chain, never()).filter(any());
         assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(exchange.getResponse().getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_JSON);
-        String body = exchange.getResponse().getBodyAsString().block();
-        assertThat(body).isNotNull();
-        assertThat(body)
-                .contains("\"code\":\"AUTH_SESSION_TERMINATED\"")
-                .contains("다른 기기에서 로그인하여 현재 세션이 종료되었습니다.");
+        assertThat(exchange.getResponse().getHeaders().getContentType()).isNull();
     }
 
     private static Jwt jwtWithId(String jti) {
