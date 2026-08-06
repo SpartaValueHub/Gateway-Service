@@ -23,6 +23,9 @@ import java.time.Instant;
 public class AccessTokenBlacklistWebFilter implements WebFilter {
 
 	private static final String KEY_PREFIX = "auth:blacklist:access:";
+	private static final String SESSION_TERMINATED_CODE = "AUTH_SESSION_TERMINATED";
+	private static final String SESSION_TERMINATED_MESSAGE =
+			"다른 기기에서 로그인하여 현재 세션이 종료되었습니다.";
 	private static final String DEPENDENCY_UNAVAILABLE_MESSAGE =
 			"인증 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.";
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().registerModule(new JavaTimeModule());
@@ -46,8 +49,9 @@ public class AccessTokenBlacklistWebFilter implements WebFilter {
 
 		return exchange.getPrincipal()
 				.ofType(JwtAuthenticationToken.class)
-				.flatMap(auth -> processJwt(exchange, chain, auth))
-				.switchIfEmpty(Mono.defer(() -> chain.filter(exchange)));
+				.flatMap(auth -> processJwt(exchange, chain, auth).thenReturn(Boolean.TRUE))
+				.switchIfEmpty(Mono.defer(() -> chain.filter(exchange).thenReturn(Boolean.FALSE)))
+				.then();
 	}
 
 	private Mono<Void> processJwt(ServerWebExchange exchange, WebFilterChain chain, JwtAuthenticationToken auth) {
@@ -58,12 +62,25 @@ public class AccessTokenBlacklistWebFilter implements WebFilter {
 		return redisTemplate.hasKey(KEY_PREFIX + jti)
 				.flatMap(blacklisted -> {
 					if (Boolean.TRUE.equals(blacklisted)) {
-						exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-						return exchange.getResponse().setComplete();
+						return writeSessionTerminated(exchange);
 					}
 					return chain.filter(exchange);
 				})
 				.onErrorResume(ex -> writeSecurityStoreUnavailable(exchange));
+	}
+
+	private Mono<Void> writeSessionTerminated(ServerWebExchange exchange) {
+		ServerHttpResponse response = exchange.getResponse();
+		response.setStatusCode(HttpStatus.UNAUTHORIZED);
+		response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+		return writeJsonBody(response, new GatewayErrorResponse(
+				Instant.now(),
+				HttpStatus.UNAUTHORIZED.value(),
+				SESSION_TERMINATED_CODE,
+				SESSION_TERMINATED_MESSAGE,
+				exchange.getRequest().getURI().getPath(),
+				null
+		));
 	}
 
 	private Mono<Void> writeSecurityStoreUnavailable(ServerWebExchange exchange) {
@@ -72,15 +89,17 @@ public class AccessTokenBlacklistWebFilter implements WebFilter {
 		response.getHeaders().add(HttpHeaders.RETRY_AFTER, String.valueOf(dependencyRetryAfterSeconds));
 		response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
-		GatewayErrorResponse body = new GatewayErrorResponse(
+		return writeJsonBody(response, new GatewayErrorResponse(
 				Instant.now(),
 				HttpStatus.SERVICE_UNAVAILABLE.value(),
 				"AUTH_SECURITY_STORE_UNAVAILABLE",
 				DEPENDENCY_UNAVAILABLE_MESSAGE,
 				exchange.getRequest().getURI().getPath(),
 				dependencyRetryAfterSeconds
-		);
+		));
+	}
 
+	private Mono<Void> writeJsonBody(ServerHttpResponse response, GatewayErrorResponse body) {
 		try {
 			byte[] bytes = OBJECT_MAPPER.writeValueAsBytes(body);
 			DataBuffer buffer = response.bufferFactory().wrap(bytes);
