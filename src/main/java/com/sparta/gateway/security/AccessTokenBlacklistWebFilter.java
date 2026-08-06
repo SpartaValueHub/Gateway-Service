@@ -23,9 +23,6 @@ import java.time.Instant;
 public class AccessTokenBlacklistWebFilter implements WebFilter {
 
 	private static final String KEY_PREFIX = "auth:blacklist:access:";
-	private static final String SESSION_TERMINATED_CODE = "AUTH_SESSION_TERMINATED";
-	private static final String SESSION_TERMINATED_MESSAGE =
-			"다른 기기에서 로그인하여 현재 세션이 종료되었습니다.";
 	private static final String DEPENDENCY_UNAVAILABLE_MESSAGE =
 			"인증 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.";
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().registerModule(new JavaTimeModule());
@@ -62,25 +59,12 @@ public class AccessTokenBlacklistWebFilter implements WebFilter {
 		return redisTemplate.hasKey(KEY_PREFIX + jti)
 				.flatMap(blacklisted -> {
 					if (Boolean.TRUE.equals(blacklisted)) {
-						return writeSessionTerminated(exchange);
+						exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+						return exchange.getResponse().setComplete();
 					}
 					return chain.filter(exchange);
 				})
 				.onErrorResume(ex -> writeSecurityStoreUnavailable(exchange));
-	}
-
-	private Mono<Void> writeSessionTerminated(ServerWebExchange exchange) {
-		ServerHttpResponse response = exchange.getResponse();
-		response.setStatusCode(HttpStatus.UNAUTHORIZED);
-		response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-		return writeJsonBody(response, new GatewayErrorResponse(
-				Instant.now(),
-				HttpStatus.UNAUTHORIZED.value(),
-				SESSION_TERMINATED_CODE,
-				SESSION_TERMINATED_MESSAGE,
-				exchange.getRequest().getURI().getPath(),
-				null
-		));
 	}
 
 	private Mono<Void> writeSecurityStoreUnavailable(ServerWebExchange exchange) {
