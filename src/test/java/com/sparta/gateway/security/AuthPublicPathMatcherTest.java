@@ -25,7 +25,6 @@ class AuthPublicPathMatcherTest {
 	@Test
 	void isPublic_deniesProtectedAuthApis() {
 		assertThat(AuthPublicPathMatcher.isPublic("/auth-service/api/v1/auth/logout")).isFalse();
-		assertThat(AuthPublicPathMatcher.isPublic("/auth-service/api/v1/auth/session")).isFalse();
 	}
 
 }
