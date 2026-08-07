@@ -25,6 +25,7 @@ public class MicroserviceRouteConfig {
 			"listing-service",
 			"reviews-service",
 			"reports-service",
+			"reservations-service",
 			"notifications-service",
 			"premium-plans-service",
 			"bo-service",
