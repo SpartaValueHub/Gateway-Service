@@ -28,6 +28,7 @@ public API (auth-service와 동기화):
 | Method | Path (Gateway 기준) |
 |--------|---------------------|
 | POST | `/{service}/api/v1/auth/sign-up` |
+| POST | `/{service}/api/v1/auth/sign-up/resume` |
 | POST | `/{service}/api/v1/auth/sign-in` |
 | POST | `/{service}/api/v1/auth/refresh` |
 | GET | `/{service}/api/v1/auth/check/login-id` |
@@ -77,22 +78,15 @@ curl.exe -s -o NUL -w "%{http_code}" -X POST "http://localhost:8000/auth-service
 403 → Security 미반영 또는 JWT public path 누락  
 400 등 → Gateway 통과 (auth-service 응답)
 
-### 로컬 임시
-
-```env
-SECURITY_JWT_ENABLED=false
-```
-
-JWT off 시 `SecurityConfig`가 public 외 **전 구간 permitAll** (초기 FE 연동용).
-
-### JWT on 설정
+### JWT 설정
 
 `.env.example` 참고:
 
-- `SECURITY_JWT_ENABLED=true`
+- `SECURITY_JWT_ENABLED=true` (기본값). prod 에서 `false` 이면 기동 실패
 - `JWT_PUBLIC_KEY` 또는 `JWT_PUBLIC_KEY_LOCATION` (auth-service `jwt-public.pem`)
 
 ---
+
 
 ## CORS
 
