@@ -22,7 +22,7 @@ Redis key: `auth:blacklist:access:{jti}` — auth-service logout과 공유.
 |----------|---------|
 | `AUTH_COOKIE_ACCESS_NAME` | `vh_access_token` |
 | `REDIS_HOST` | `localhost` |
-| `SECURITY_JWT_ENABLED` | `false` (local), `true` (prod) |
+| `SECURITY_JWT_ENABLED` | `true` (기본). prod 에서 `false` 금지 |
 
 ## Manual E2E
 
