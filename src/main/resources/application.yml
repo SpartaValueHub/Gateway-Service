@@ -28,6 +28,7 @@ gateway:
       - listing-service
       - reviews-service
       - reports-service
+      - reservations-service
       - notifications-service
       - premium-plans-service
       - bo-service
@@ -71,6 +72,8 @@ springdoc:
         url: /reviews-service/v3/api-docs
       - name: reports-service
         url: /reports-service/v3/api-docs
+      - name: reservations-service
+        url: /reservations-service/v3/api-docs
       - name: notifications-service
         url: /notifications-service/v3/api-docs
       - name: premium-plans-service
