@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 /**
  * Gateway Edge public path — JWT 검증 예외.
  * auth public API는 auth-service SecurityConfig 와 동일 경로를 유지.
- * member-service: 회원가입 전 닉네임 중복 확인만 public.
+ * member-service: 회원가입 전 닉네임 중복 확인·현재 유효 약관 조회만 public.
  */
 public final class SecurityPathConstants {
 
@@ -26,6 +26,7 @@ public final class SecurityPathConstants {
 
 	public static final String[] MEMBER_PUBLIC_PATHS = {
 			"/*/api/v1/members/check/nickname",
+			"/*/api/v1/terms/active",
 	};
 
 	public static final String[] INFRA_PUBLIC_PATHS = {
