@@ -34,7 +34,7 @@ gateway:
 
 security:
   jwt:
-    enabled: ${SECURITY_JWT_ENABLED:false}
+    enabled: ${SECURITY_JWT_ENABLED:true}
 
 jwt:
   public-key: ${JWT_PUBLIC_KEY:}

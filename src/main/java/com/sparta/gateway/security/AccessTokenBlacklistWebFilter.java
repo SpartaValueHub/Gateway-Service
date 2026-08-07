@@ -52,6 +52,10 @@ public class AccessTokenBlacklistWebFilter implements WebFilter {
 	}
 
 	private Mono<Void> processJwt(ServerWebExchange exchange, WebFilterChain chain, JwtAuthenticationToken auth) {
+		String tokenType = auth.getToken().getClaimAsString("tokenType");
+		if (tokenType != null && !"access".equals(tokenType)) {
+			return chain.filter(exchange);
+		}
 		String jti = auth.getToken().getId();
 		if (jti == null || jti.isBlank()) {
 			return chain.filter(exchange);

@@ -22,12 +22,12 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 /**
- * SECURITY_JWT_ENABLED=true — public API는 JWT 필터 없이 permitAll, 나머지만 JWT 검증.
+ * JWT on(기본) — public API는 JWT 필터 없이 permitAll, 나머지만 JWT 검증.
  * Access token은 Authorization Bearer 또는 HttpOnly Cookie(vh_access_token).
  */
 @Configuration
 @EnableWebFluxSecurity
-@ConditionalOnProperty(name = "security.jwt.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "security.jwt.enabled", havingValue = "true", matchIfMissing = true)
 public class JwtSecurityConfig {
 
 	@Bean
@@ -47,6 +47,7 @@ public class JwtSecurityConfig {
 			ReactiveJwtDecoder reactiveJwtDecoder,
 			CookieBearerTokenAuthenticationConverter cookieBearerTokenAuthenticationConverter,
 			AccessTokenBlacklistWebFilter accessTokenBlacklistWebFilter,
+			SignupCompletionTokenWebFilter signupCompletionTokenWebFilter,
 			InternalAuthHeaderWebFilter internalAuthHeaderWebFilter
 	) {
 		return http
@@ -56,6 +57,7 @@ public class JwtSecurityConfig {
 						.bearerTokenConverter(cookieBearerTokenAuthenticationConverter)
 						.jwt(jwt -> jwt.jwtDecoder(reactiveJwtDecoder)))
 				.addFilterAfter(accessTokenBlacklistWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+				.addFilterAfter(signupCompletionTokenWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
 				.addFilterAfter(internalAuthHeaderWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
 				.build();
 	}
@@ -82,6 +84,13 @@ public class JwtSecurityConfig {
 	@Bean
 	public InternalAuthHeaderWebFilter internalAuthHeaderWebFilter() {
 		return new InternalAuthHeaderWebFilter();
+	}
+
+	@Bean
+	public SignupCompletionTokenWebFilter signupCompletionTokenWebFilter(
+			ReactiveStringRedisTemplate redisTemplate
+	) {
+		return new SignupCompletionTokenWebFilter(redisTemplate);
 	}
 
 	private static String resolvePublicKeyPem(

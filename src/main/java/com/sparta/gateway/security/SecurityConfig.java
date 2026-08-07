@@ -8,12 +8,12 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
 /**
- * 로컬·초기 연동용 — JWT off 시 public 외 전 구간 permitAll.
- * SECURITY_JWT_ENABLED=true 이면 JwtSecurityConfig 가 대체(@ConditionalOnProperty).
+ * JWT 명시적 off 전용 — public 외 전 구간 permitAll.
+ * security.jwt.enabled=true(또는 미설정)이면 JwtSecurityConfig 가 활성화된다.
  */
 @Configuration
 @EnableWebFluxSecurity
-@ConditionalOnProperty(name = "security.jwt.enabled", havingValue = "false", matchIfMissing = true)
+@ConditionalOnProperty(name = "security.jwt.enabled", havingValue = "false", matchIfMissing = false)
 public class SecurityConfig {
 
 	@Bean

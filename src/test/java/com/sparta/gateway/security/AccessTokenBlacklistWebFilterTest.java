@@ -98,6 +98,18 @@ class AccessTokenBlacklistWebFilterTest {
     }
 
     @Test
+    void memberServiceRouteIsProtectedAndDelegatesWithoutRedisWhenUnauthenticated() {
+        MockServerWebExchange exchange = exchangeForPath("/member-service/api/v1/members/me");
+
+        StepVerifier.create(filter.filter(exchange, chain))
+                .verifyComplete();
+
+        verify(redisTemplate, never()).hasKey(any());
+        verify(chain).filter(exchange);
+        assertThat(exchange.getResponse().getStatusCode()).isNull();
+    }
+
+    @Test
     void blacklistedAccessTokenReturns401() {
         Jwt jwt = jwtWithId("blacklisted-jti");
         MockServerWebExchange exchange = exchangeWithPrincipal(
