@@ -49,11 +49,12 @@ public final class SecurityPathConstants {
 				.toArray(String[]::new);
 	}
 
-	/** JWT on public chain — auth API는 regex matcher, infra는 pathMatchers */
+	/** JWT on public chain — auth API는 regex matcher, infra·member public은 pathMatchers */
 	public static OrServerWebExchangeMatcher jwtPublicExchangeMatcher() {
 		return new OrServerWebExchangeMatcher(
 				new AuthPublicServerWebExchangeMatcher(),
-				ServerWebExchangeMatchers.pathMatchers(INFRA_PUBLIC_PATHS)
+				ServerWebExchangeMatchers.pathMatchers(INFRA_PUBLIC_PATHS),
+				ServerWebExchangeMatchers.pathMatchers(MEMBER_PUBLIC_PATHS)
 		);
 	}
 }
