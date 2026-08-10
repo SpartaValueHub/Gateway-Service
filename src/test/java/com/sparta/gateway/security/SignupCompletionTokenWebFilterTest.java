@@ -106,6 +106,31 @@ class SignupCompletionTokenWebFilterTest {
 	}
 
 	@Test
+	void downstreamExceptionIsNotMisclassifiedAsSecurityStoreFailure() {
+		MockServerWebExchange exchange = postExchange(CREATE_PATH, completionToken("jti-1"));
+		when(valueOperations.get(KEY)).thenReturn(Mono.just("jti-1"));
+		IllegalStateException downstreamFailure = new IllegalStateException("member-service unavailable");
+		when(chain.filter(exchange)).thenReturn(Mono.error(downstreamFailure));
+
+		StepVerifier.create(filter.filter(exchange, chain))
+				.expectErrorMatches(error -> error == downstreamFailure)
+				.verify();
+
+		assertThat(exchange.getResponse().getStatusCode()).isNull();
+	}
+
+	@Test
+	void redisLookupFailureIsReportedAsSecurityStoreUnavailable() {
+		MockServerWebExchange exchange = postExchange(CREATE_PATH, completionToken("jti-1"));
+		when(valueOperations.get(KEY)).thenReturn(Mono.error(new IllegalStateException("redis unavailable")));
+
+		StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+		verify(chain, never()).filter(any());
+		assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+	}
+
+	@Test
 	void completionTokenIsRejectedOnOtherEndpoints() {
 		MockServerWebExchange exchange = MockServerWebExchange
 				.builder(MockServerHttpRequest.get("/member-service/api/v1/members/me").build())

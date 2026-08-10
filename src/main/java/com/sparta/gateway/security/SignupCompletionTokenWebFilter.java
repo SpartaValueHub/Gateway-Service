@@ -76,6 +76,7 @@ public class SignupCompletionTokenWebFilter implements WebFilter {
 
         String key = KEY_PREFIX + subject;
         return redisTemplate.opsForValue().get(key)
+                .onErrorMap(SignupCompletionSecurityStoreException::new)
                 .flatMap(activeJti -> {
                     if (!jti.equals(activeJti)) {
                         return writeError(exchange, HttpStatus.UNAUTHORIZED,
@@ -95,11 +96,17 @@ public class SignupCompletionTokenWebFilter implements WebFilter {
                     return writeError(exchange, HttpStatus.UNAUTHORIZED,
                             "SIGNUP_COMPLETION_TOKEN_INVALID", "유효하지 않은 가입 완료 토큰입니다.");
                 }))
-                .onErrorResume(ex -> {
+                .onErrorResume(SignupCompletionSecurityStoreException.class, ex -> {
                     return writeError(exchange, HttpStatus.SERVICE_UNAVAILABLE,
                             "AUTH_SECURITY_STORE_UNAVAILABLE",
                             "인증 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.");
                 });
+    }
+
+    private static final class SignupCompletionSecurityStoreException extends RuntimeException {
+        private SignupCompletionSecurityStoreException(Throwable cause) {
+            super(cause);
+        }
     }
 
     private Mono<Void> writeError(ServerWebExchange exchange, HttpStatus status, String code, String message) {
