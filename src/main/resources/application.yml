@@ -27,6 +27,7 @@ gateway:
       - notifications-service
       - premium-plans-service
       - bo-service
+      - reservations-service
 
 security:
   jwt:

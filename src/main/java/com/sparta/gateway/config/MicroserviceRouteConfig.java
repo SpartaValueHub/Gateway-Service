@@ -23,6 +23,7 @@ public class MicroserviceRouteConfig {
 			"notifications-service",
 			"premium-plans-service",
 			"bo-service",
+			"reservations-service",
 			"discovery-service"
 	);
 
