@@ -22,7 +22,7 @@ public class MicroserviceRouteConfig {
 			"member-service",
 			"category-service",
 			"member-regions-service",
-			"listing-service",
+			"product-post-service",
 			"reviews-service",
 			"reports-service",
 			"reservations-service",

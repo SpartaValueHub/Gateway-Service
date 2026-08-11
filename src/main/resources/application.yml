@@ -25,7 +25,7 @@ gateway:
       - member-service
       - category-service
       - member-regions-service
-      - listing-service
+      - product-post-service
       - reviews-service
       - reports-service
       - reservations-service
@@ -66,8 +66,8 @@ springdoc:
         url: /category-service/v3/api-docs
       - name: member-regions-service
         url: /member-regions-service/v3/api-docs
-      - name: listing-service
-        url: /listing-service/v3/api-docs
+      - name: product-post-service
+        url: /product-post-service/v3/api-docs
       - name: reviews-service
         url: /reviews-service/v3/api-docs
       - name: reports-service
