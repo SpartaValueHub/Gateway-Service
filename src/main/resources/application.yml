@@ -8,10 +8,6 @@ spring:
       discovery:
         locator:
           enabled: false
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
 
 eureka:
   instance:
@@ -25,27 +21,17 @@ gateway:
       - member-service
       - category-service
       - member-regions-service
-      - product-post-service
+      - listing-service
       - reviews-service
       - reports-service
-      - reservations-service
       - notifications-service
       - premium-plans-service
       - bo-service
+      - reservations-service
 
 security:
   jwt:
-    enabled: ${SECURITY_JWT_ENABLED:true}
-
-jwt:
-  public-key: ${JWT_PUBLIC_KEY:}
-  public-key-location: ${JWT_PUBLIC_KEY_LOCATION:}
-
-auth:
-  cookie:
-    access-name: ${AUTH_COOKIE_ACCESS_NAME:vh_access_token}
-  dependency-failure:
-    retry-after-seconds: ${AUTH_DEPENDENCY_RETRY_AFTER_SECONDS:5}
+    enabled: ${SECURITY_JWT_ENABLED:false}
 
 springdoc:
   api-docs:
@@ -66,14 +52,12 @@ springdoc:
         url: /category-service/v3/api-docs
       - name: member-regions-service
         url: /member-regions-service/v3/api-docs
-      - name: product-post-service
-        url: /product-post-service/v3/api-docs
+      - name: listing-service
+        url: /listing-service/v3/api-docs
       - name: reviews-service
         url: /reviews-service/v3/api-docs
       - name: reports-service
         url: /reports-service/v3/api-docs
-      - name: reservations-service
-        url: /reservations-service/v3/api-docs
       - name: notifications-service
         url: /notifications-service/v3/api-docs
       - name: premium-plans-service

@@ -8,27 +8,22 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Eureka lb:// 라우트 — /{service}/** → strip prefix → downstream.
- * YAML routes 대신 Java RouteLocator 유지(discovery locator OFF).
- */
 @Configuration
 public class MicroserviceRouteConfig {
 
-	/** gateway.openapi.services 미등록 시에도 라우트·Swagger proxy fallback */
 	private static final List<String> PROXY_SERVICES = List.of(
 			"auth-service",
 			"chat-service",
 			"member-service",
 			"category-service",
 			"member-regions-service",
-			"product-post-service",
+			"listing-service",
 			"reviews-service",
 			"reports-service",
-			"reservations-service",
 			"notifications-service",
 			"premium-plans-service",
 			"bo-service",
+			"reservations-service",
 			"discovery-service"
 	);
 
@@ -45,7 +40,6 @@ public class MicroserviceRouteConfig {
 				service + "-proxy",
 				r -> r.order(0)
 						.path("/" + service + "/**")
-						// /auth-service/api/v1/... → /api/v1/... rewrite
 						.filters(f -> f.rewritePath("/" + service + "/(?<segment>.*)", "/${segment}"))
 						.uri("lb://" + service)));
 
