@@ -9,6 +9,7 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 
+/** Gateway Swagger UI — downstream /{service}/v3/api-docs 집약, Bearer는 auth-service RS256 access */
 @Configuration
 public class OpenApiConfig {
 

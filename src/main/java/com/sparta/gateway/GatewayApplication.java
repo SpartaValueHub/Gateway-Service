@@ -7,6 +7,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 import com.sparta.gateway.config.GatewayOpenApiProperties;
 
+/** MSA Edge — CORS·JWT 검증·lb:// 라우팅. FE·Swagger는 :8000(Gateway) 단일 진입점 */
 @EnableDiscoveryClient
 @EnableConfigurationProperties(GatewayOpenApiProperties.class)
 @SpringBootApplication
