@@ -88,5 +88,5 @@ jobs:
             test -f .env
             IMAGE_TAG="${{ env.IMAGE_TAG }}" docker compose -f compose.prod-apps.yml --env-file .env pull "${{ env.COMPOSE_SERVICE }}"
             IMAGE_TAG="${{ env.IMAGE_TAG }}" docker compose -f compose.prod-apps.yml --env-file .env up -d --no-deps "${{ env.COMPOSE_SERVICE }}"
-            docker image prune -f
+            docker image prune -af
             docker ps --filter "name=valuehub-${{ env.COMPOSE_SERVICE }}"
