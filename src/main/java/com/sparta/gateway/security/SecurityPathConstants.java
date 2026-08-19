@@ -1,5 +1,6 @@
 package com.sparta.gateway.security;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.server.util.matcher.OrServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 
@@ -29,6 +30,17 @@ public final class SecurityPathConstants {
 			"/*/api/v1/terms/active",
 	};
 
+	// GET 조회만 비로그인 허용 (POST/PUT/DELETE는 JWT 필요)
+	public static final String[] CATEGORY_PUBLIC_GET_PATHS = {
+			"/*/api/v1/categories/**"
+	};
+
+	// GET 목록 + 상세 조회만 비로그인 허용
+	public static final String[] PRODUCT_POST_PUBLIC_GET_PATHS = {
+			"/*/api/v1/product-posts",
+			"/*/api/v1/product-posts/*"
+	};
+
 	public static final String[] INFRA_PUBLIC_PATHS = {
 			"/",
 			"/health",
@@ -54,7 +66,9 @@ public final class SecurityPathConstants {
 		return new OrServerWebExchangeMatcher(
 				new AuthPublicServerWebExchangeMatcher(),
 				ServerWebExchangeMatchers.pathMatchers(INFRA_PUBLIC_PATHS),
-				ServerWebExchangeMatchers.pathMatchers(MEMBER_PUBLIC_PATHS)
+				ServerWebExchangeMatchers.pathMatchers(MEMBER_PUBLIC_PATHS),
+				ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, CATEGORY_PUBLIC_GET_PATHS),
+				ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, PRODUCT_POST_PUBLIC_GET_PATHS)
 		);
 	}
 }
