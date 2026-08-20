@@ -8,6 +8,12 @@ spring:
       discovery:
         locator:
           enabled: false
+      server:
+        webflux:
+          # ALB(VPC 사설 IP)만 Forwarded 헤더 신뢰. 공개 :8000 직접 접속은 Strip 필터가 제거.
+          trusted-proxies: "10\\..*|192\\.168\\..*|172\\.(1[6-9]|2[0-9]|3[0-1])\\..*"
+          x-forwarded:
+            proto-append: false
 
 eureka:
   instance:
