@@ -15,6 +15,11 @@ public final class AuthPublicPathMatcher {
 			"^/[^/]+/api/v1/auth/(sign-up(?:/resume)?|sign-in|refresh|check/(login-id|email))/?$"
 	);
 
+	// FO 판매자 프로필용 가입일 — Auth GET /auth/members/{memberUuid}/joined-at
+	private static final Pattern AUTH_MEMBER_JOINED_AT_PUBLIC_API = Pattern.compile(
+			"^/[^/]+/api/v1/auth/members/[^/]+/joined-at/?$"
+	);
+
 	private static final Pattern IDENTITY_PUBLIC_API = Pattern.compile(
 			"^/[^/]+/api/v1/identity-verifications(?:/.*)?$"
 	);
@@ -38,6 +43,7 @@ public final class AuthPublicPathMatcher {
 				? path.substring(0, path.length() - 1)
 				: path;
 		return AUTH_PUBLIC_API.matcher(normalized).matches()
+				|| AUTH_MEMBER_JOINED_AT_PUBLIC_API.matcher(normalized).matches()
 				|| IDENTITY_PUBLIC_API.matcher(normalized).matches()
 				|| MEMBER_PUBLIC_API.matcher(normalized).matches()
 				|| MEMBER_TERMS_PUBLIC_API.matcher(normalized).matches();

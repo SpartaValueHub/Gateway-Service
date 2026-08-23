@@ -21,6 +21,8 @@ public final class SecurityPathConstants {
 			"/*/api/v1/auth/sign-in/**",
 			"/*/api/v1/auth/refresh/**",
 			"/*/api/v1/auth/check/**",
+			// 타인 가입일 조회 (FO 프로필) — GET only downstream
+			"/*/api/v1/auth/members/*/joined-at",
 			// logout·기타 auth API는 JWT on 시 Bearer 필요
 			"/*/api/v1/identity-verifications/**"
 	};
