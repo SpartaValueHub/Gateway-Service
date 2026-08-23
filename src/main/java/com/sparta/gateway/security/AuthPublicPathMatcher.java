@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
  * Gateway Edge public API — JWT on 시 permitAll 대상.
  * PathPattern 와일드카드 이슈 회피를 위해 URI path regex로 판별.
  * auth-service SecurityConfig public API 와 동기화.
- * member-service: 회원가입 전 닉네임 중복 확인(`/members/check/nickname`)·현재 유효 약관(`/terms/active`)만 public.
+ * member-service: 닉네임 중복 확인·유효 약관·타인 공개 프로필 public.
  * (Swagger·Gateway /health 는 {@link SecurityPathConstants#INFRA_PUBLIC_PATHS}).
  */
 public final class AuthPublicPathMatcher {
@@ -28,6 +28,11 @@ public final class AuthPublicPathMatcher {
 			"^/[^/]+/api/v1/members/check/nickname/?$"
 	);
 
+	// FO 판매자 프로필 — Member GET /members/{memberUuid}/profile
+	private static final Pattern MEMBER_PROFILE_PUBLIC_API = Pattern.compile(
+			"^/[^/]+/api/v1/members/[^/]+/profile/?$"
+	);
+
 	private static final Pattern MEMBER_TERMS_PUBLIC_API = Pattern.compile(
 			"^/[^/]+/api/v1/terms/active/?$"
 	);
@@ -46,6 +51,7 @@ public final class AuthPublicPathMatcher {
 				|| AUTH_MEMBER_JOINED_AT_PUBLIC_API.matcher(normalized).matches()
 				|| IDENTITY_PUBLIC_API.matcher(normalized).matches()
 				|| MEMBER_PUBLIC_API.matcher(normalized).matches()
+				|| MEMBER_PROFILE_PUBLIC_API.matcher(normalized).matches()
 				|| MEMBER_TERMS_PUBLIC_API.matcher(normalized).matches();
 	}
 }
