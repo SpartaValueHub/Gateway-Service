@@ -18,6 +18,7 @@ class AuthPublicPathMatcherTest {
 			"/auth-service/api/v1/auth/check/email",
 			"/auth-service/api/v1/auth/members/550e8400-e29b-41d4-a716-446655440000/joined-at",
 			"/member-service/api/v1/members/check/nickname",
+			"/member-service/api/v1/members/550e8400-e29b-41d4-a716-446655440000/profile",
 			"/member-service/api/v1/terms/active",
 			"/auth-service/api/v1/identity-verifications/confirm",
 			"/auth-service/api/v1/identity-verifications/identity-verification-001"
@@ -37,6 +38,7 @@ class AuthPublicPathMatcherTest {
 	@ValueSource(strings = {
 			"/member-service/api/v1/members/me",
 			"/member-service/api/v1/members",
+			"/member-service/api/v1/members/550e8400-e29b-41d4-a716-446655440000",
 			"/member-service/api/v1/terms",
 			"/member-service/health",
 			"/chat-service/api/v1/chat/rooms"
