@@ -16,6 +16,7 @@ class AuthPublicPathMatcherTest {
 			"/auth-service/api/v1/auth/refresh",
 			"/auth-service/api/v1/auth/check/login-id",
 			"/auth-service/api/v1/auth/check/email",
+			"/auth-service/api/v1/auth/members/550e8400-e29b-41d4-a716-446655440000/joined-at",
 			"/member-service/api/v1/members/check/nickname",
 			"/member-service/api/v1/terms/active",
 			"/auth-service/api/v1/identity-verifications/confirm",
@@ -28,6 +29,8 @@ class AuthPublicPathMatcherTest {
 	@Test
 	void isPublic_deniesProtectedAuthApis() {
 		assertThat(AuthPublicPathMatcher.isPublic("/auth-service/api/v1/auth/logout")).isFalse();
+		assertThat(AuthPublicPathMatcher.isPublic("/auth-service/api/v1/auth/me")).isFalse();
+		assertThat(AuthPublicPathMatcher.isPublic("/auth-service/api/v1/auth/members/550e8400-e29b-41d4-a716-446655440000")).isFalse();
 	}
 
 	@ParameterizedTest
