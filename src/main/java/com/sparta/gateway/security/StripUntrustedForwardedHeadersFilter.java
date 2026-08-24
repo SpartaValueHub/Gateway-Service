@@ -1,5 +1,7 @@
 package com.sparta.gateway.security;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -21,6 +23,8 @@ import java.util.List;
 @Component
 public class StripUntrustedForwardedHeadersFilter implements GlobalFilter, Ordered {
 
+    private static final Logger log = LoggerFactory.getLogger(StripUntrustedForwardedHeadersFilter.class);
+
     static final List<String> HEADERS_TO_STRIP = List.of(
             "Forwarded",
             "X-Forwarded-For",
@@ -32,12 +36,18 @@ public class StripUntrustedForwardedHeadersFilter implements GlobalFilter, Order
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        if (isTrustedProxy(exchange.getRequest().getRemoteAddress())) {
-            return chain.filter(exchange);
+        GatewayRequestTrace.enter(log, "StripForwardedHeaders", exchange);
+        boolean trusted = isTrustedProxy(exchange.getRequest().getRemoteAddress());
+        if (trusted) {
+            GatewayRequestTrace.skip(log, "StripForwardedHeaders", exchange, "trusted-proxy-keep-forwarded");
+            return chain.filter(exchange)
+                    .doOnError(error -> GatewayRequestTrace.fail(log, "StripForwardedHeaders", exchange, error));
         }
+        GatewayRequestTrace.skip(log, "StripForwardedHeaders", exchange, "untrusted-strip-forwarded");
         ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
         builder.headers(headers -> HEADERS_TO_STRIP.forEach(headers::remove));
-        return chain.filter(exchange.mutate().request(builder.build()).build());
+        return chain.filter(exchange.mutate().request(builder.build()).build())
+                .doOnError(error -> GatewayRequestTrace.fail(log, "StripForwardedHeaders", exchange, error));
     }
 
     static boolean isTrustedProxy(InetSocketAddress remote) {

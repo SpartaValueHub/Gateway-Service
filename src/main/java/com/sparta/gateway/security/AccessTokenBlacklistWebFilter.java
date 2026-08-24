@@ -3,6 +3,8 @@ package com.sparta.gateway.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,6 +24,7 @@ import java.time.Instant;
  */
 public class AccessTokenBlacklistWebFilter implements WebFilter {
 
+	private static final Logger log = LoggerFactory.getLogger(AccessTokenBlacklistWebFilter.class);
 	private static final String KEY_PREFIX = "auth:blacklist:access:";
 	private static final String DEPENDENCY_UNAVAILABLE_MESSAGE =
 			"인증 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.";
@@ -40,35 +43,48 @@ public class AccessTokenBlacklistWebFilter implements WebFilter {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+		GatewayRequestTrace.enter(log, "AccessTokenBlacklist", exchange);
 		if (AuthPublicPathMatcher.isPublic(exchange.getRequest().getURI().getPath())) {
+			GatewayRequestTrace.skip(log, "AccessTokenBlacklist", exchange, "public-path");
 			return chain.filter(exchange);
 		}
 
 		return exchange.getPrincipal()
 				.ofType(JwtAuthenticationToken.class)
 				.flatMap(auth -> processJwt(exchange, chain, auth).thenReturn(Boolean.TRUE))
-				.switchIfEmpty(Mono.defer(() -> chain.filter(exchange).thenReturn(Boolean.FALSE)))
+				.switchIfEmpty(Mono.defer(() -> {
+					GatewayRequestTrace.skip(log, "AccessTokenBlacklist", exchange, "no-jwt");
+					return chain.filter(exchange).thenReturn(Boolean.FALSE);
+				}))
 				.then();
 	}
 
 	private Mono<Void> processJwt(ServerWebExchange exchange, WebFilterChain chain, JwtAuthenticationToken auth) {
 		String tokenType = auth.getToken().getClaimAsString("tokenType");
 		if (tokenType != null && !"access".equals(tokenType)) {
+			GatewayRequestTrace.skip(log, "AccessTokenBlacklist", exchange, "non-access-token");
 			return chain.filter(exchange);
 		}
 		String jti = auth.getToken().getId();
 		if (jti == null || jti.isBlank()) {
+			GatewayRequestTrace.skip(log, "AccessTokenBlacklist", exchange, "no-jti");
 			return chain.filter(exchange);
 		}
 		return redisTemplate.hasKey(KEY_PREFIX + jti)
 				.flatMap(blacklisted -> {
 					if (Boolean.TRUE.equals(blacklisted)) {
+						GatewayRequestTrace.reject(log, "AccessTokenBlacklist", exchange,
+								HttpStatus.UNAUTHORIZED, "blacklisted-jti");
 						exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
 						return exchange.getResponse().setComplete();
 					}
+					GatewayRequestTrace.pass(log, "AccessTokenBlacklist", exchange);
 					return chain.filter(exchange);
 				})
-				.onErrorResume(ex -> writeSecurityStoreUnavailable(exchange));
+				.onErrorResume(ex -> {
+					GatewayRequestTrace.fail(log, "AccessTokenBlacklist", exchange, ex);
+					return writeSecurityStoreUnavailable(exchange);
+				});
 	}
 
 	private Mono<Void> writeSecurityStoreUnavailable(ServerWebExchange exchange) {

@@ -20,3 +20,4 @@ logging:
   level:
     root: WARN
     org.springframework.cloud.gateway: WARN
+    com.sparta.gateway: INFO

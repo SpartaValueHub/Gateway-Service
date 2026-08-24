@@ -2,6 +2,8 @@ package com.sparta.gateway.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.MediaType;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
@@ -19,6 +21,8 @@ import java.time.Instant;
 
 /** 가입 완료 토큰을 member 생성 한 경로로 제한하고 성공 응답 뒤 원자적으로 소비한다. */
 public class SignupCompletionTokenWebFilter implements WebFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(SignupCompletionTokenWebFilter.class);
     private static final String TOKEN_TYPE = "SIGNUP_COMPLETION";
     private static final String PURPOSE = "MEMBER_PROFILE_CREATE";
     private static final String CREATE_PATH = "/member-service/api/v1/members";
@@ -39,12 +43,16 @@ public class SignupCompletionTokenWebFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+        GatewayRequestTrace.enter(log, "SignupCompletionToken", exchange);
         // filterAuthenticated 는 Mono<Void>(항상 empty) 이므로 thenReturn 없이는
         // switchIfEmpty 가 인증된 요청에서도 downstream chain 을 한 번 더 구독한다.
         return exchange.getPrincipal()
                 .ofType(JwtAuthenticationToken.class)
                 .flatMap(auth -> filterAuthenticated(exchange, chain, auth).thenReturn(Boolean.TRUE))
-                .switchIfEmpty(Mono.defer(() -> chain.filter(exchange).thenReturn(Boolean.FALSE)))
+                .switchIfEmpty(Mono.defer(() -> {
+                    GatewayRequestTrace.skip(log, "SignupCompletionToken", exchange, "no-jwt");
+                    return chain.filter(exchange).thenReturn(Boolean.FALSE);
+                }))
                 .then();
     }
 
@@ -55,6 +63,7 @@ public class SignupCompletionTokenWebFilter implements WebFilter {
     ) {
         String tokenType = auth.getToken().getClaimAsString("tokenType");
         if (!TOKEN_TYPE.equals(tokenType)) {
+            GatewayRequestTrace.skip(log, "SignupCompletionToken", exchange, "not-signup-completion-token");
             return chain.filter(exchange);
         }
 
@@ -63,6 +72,8 @@ public class SignupCompletionTokenWebFilter implements WebFilter {
         if (!PURPOSE.equals(purpose)
                 || exchange.getRequest().getMethod() != HttpMethod.POST
                 || !CREATE_PATH.equals(path)) {
+            GatewayRequestTrace.reject(log, "SignupCompletionToken", exchange,
+                    HttpStatus.FORBIDDEN, "signup-completion-path-mismatch");
             return writeError(exchange, HttpStatus.FORBIDDEN,
                     "SIGNUP_COMPLETION_TOKEN_INVALID", "유효하지 않은 가입 완료 토큰입니다.");
         }
@@ -70,6 +81,8 @@ public class SignupCompletionTokenWebFilter implements WebFilter {
         String subject = auth.getToken().getSubject();
         String jti = auth.getToken().getId();
         if (subject == null || subject.isBlank() || jti == null || jti.isBlank()) {
+            GatewayRequestTrace.reject(log, "SignupCompletionToken", exchange,
+                    HttpStatus.UNAUTHORIZED, "signup-completion-missing-claims");
             return writeError(exchange, HttpStatus.UNAUTHORIZED,
                     "SIGNUP_COMPLETION_TOKEN_INVALID", "유효하지 않은 가입 완료 토큰입니다.");
         }
@@ -79,6 +92,8 @@ public class SignupCompletionTokenWebFilter implements WebFilter {
                 .onErrorMap(SignupCompletionSecurityStoreException::new)
                 .flatMap(activeJti -> {
                     if (!jti.equals(activeJti)) {
+                        GatewayRequestTrace.reject(log, "SignupCompletionToken", exchange,
+                                HttpStatus.UNAUTHORIZED, "signup-completion-jti-mismatch");
                         return writeError(exchange, HttpStatus.UNAUTHORIZED,
                                 "SIGNUP_COMPLETION_TOKEN_INVALID", "유효하지 않은 가입 완료 토큰입니다.");
                     }
@@ -90,13 +105,17 @@ public class SignupCompletionTokenWebFilter implements WebFilter {
                         }
                         return redisTemplate.execute(COMPARE_DELETE, List.of(key), List.of(jti)).then();
                     });
+                    GatewayRequestTrace.pass(log, "SignupCompletionToken", exchange);
                     return chain.filter(exchange);
                 })
                 .switchIfEmpty(Mono.defer(() -> {
+                    GatewayRequestTrace.reject(log, "SignupCompletionToken", exchange,
+                            HttpStatus.UNAUTHORIZED, "signup-completion-missing-redis");
                     return writeError(exchange, HttpStatus.UNAUTHORIZED,
                             "SIGNUP_COMPLETION_TOKEN_INVALID", "유효하지 않은 가입 완료 토큰입니다.");
                 }))
                 .onErrorResume(SignupCompletionSecurityStoreException.class, ex -> {
+                    GatewayRequestTrace.fail(log, "SignupCompletionToken", exchange, ex);
                     return writeError(exchange, HttpStatus.SERVICE_UNAVAILABLE,
                             "AUTH_SECURITY_STORE_UNAVAILABLE",
                             "인증 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.");

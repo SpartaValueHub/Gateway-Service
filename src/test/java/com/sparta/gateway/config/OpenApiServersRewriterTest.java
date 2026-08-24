@@ -29,6 +29,19 @@ class OpenApiServersRewriterTest {
 	}
 
 	@Test
+	void resolveGatewayServiceUrl_usesProductionApiHost() {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://gateway:8000/auth-service/v3/api-docs")
+				.header("X-Forwarded-Proto", "https")
+				.header("X-Forwarded-Host", "api.valuehub.art")
+				.build();
+		MockServerWebExchange exchange = MockServerWebExchange.from(request);
+
+		String url = OpenApiServersRewriter.resolveGatewayServiceUrl(exchange, "auth-service");
+
+		assertEquals("https://api.valuehub.art/auth-service", url);
+	}
+
+	@Test
 	void resolveGatewayServiceUrl_fallsBackToHostHeader() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://54.116.150.139:8000/auth-service/v3/api-docs")
 				.header(HttpHeaders.HOST, "54.116.150.139:8000")
