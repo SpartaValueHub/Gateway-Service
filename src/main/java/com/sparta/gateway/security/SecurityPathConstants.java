@@ -45,6 +45,11 @@ public final class SecurityPathConstants {
 			"/*/api/v1/product-posts/*"
 	};
 
+	// GET 헤더 검색어(추천·연관) 비로그인 허용
+	public static final String[] PRODUCT_POST_SEARCH_PUBLIC_GET_PATHS = {
+			"/*/api/v1/search/**"
+	};
+
 	public static final String[] INFRA_PUBLIC_PATHS = {
 			"/",
 			"/health",
@@ -72,7 +77,8 @@ public final class SecurityPathConstants {
 				ServerWebExchangeMatchers.pathMatchers(INFRA_PUBLIC_PATHS),
 				ServerWebExchangeMatchers.pathMatchers(MEMBER_PUBLIC_PATHS),
 				ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, CATEGORY_PUBLIC_GET_PATHS),
-				ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, PRODUCT_POST_PUBLIC_GET_PATHS)
+				ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, PRODUCT_POST_PUBLIC_GET_PATHS),
+				ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, PRODUCT_POST_SEARCH_PUBLIC_GET_PATHS)
 		);
 	}
 }
